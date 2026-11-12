@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On the Phone - Sentence Unscramble</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p.instructions {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .progress {
+            font-weight: 600;
+            color: #3498db;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .sentence-box {
+            min-height: 60px;
+            background-color: #ecf0f1;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sentence-box.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+
+        .sentence-box.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .word-pool {
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .word {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+
+        .word:hover {
+            transform: translateY(-2px);
+            background-color: #2980b9;
+        }
+        
+        .sentence-box .word {
+            background-color: #9b59b6;
+        }
+        
+        .sentence-box .word:hover {
+            background-color: #8e44ad;
+        }
+
+        .sentence-box.correct .word {
+            background-color: #28a745;
+            pointer-events: none;
+        }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: none;
+            margin: 0 auto;
+            transition: background-color 0.2s;
+        }
+
+        .check-btn {
+            background-color: #f39c12;
+        }
+
+        .check-btn:hover {
+            background-color: #d68910;
+        }
+
+        .next-btn {
+            background-color: #e74c3c;
+        }
+
+        .next-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .feedback-message {
+            font-weight: 600;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .end-screen {
+            display: none;
+        }
+        
+        .end-screen h2 {
+            color: #27ae60;
+            font-size: 32px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="game-container">
+        <h1>On the Phone 📱</h1>
+        <p class="instructions">Click the words in the correct order to form the telephone expression. Once all words are placed, click "Check Answer"!</p>
+        
+        <div class="progress" id="progress-text">Sentence 1 of 10</div>
+        
+        <div class="feedback-message" id="feedback-message"></div>
+
+        <!-- Where the student builds the sentence -->
+        <div class="sentence-box" id="sentence-box"></div>
+
+        <!-- The scrambled words to choose from -->
+        <div class="word-pool" id="word-pool"></div>
+
+        <!-- Action Buttons -->
+        <button class="btn check-btn" id="check-btn" onclick="checkAnswer()">Check Answer</button>
+        <button class="btn next-btn" id="next-btn" onclick="nextSentence()">Next Sentence</button>
+    </div>
+
+    <div class="game-container end-screen" id="end-screen">
+        <h2>🎉 Congratulations! 🎉</h2>
+        <p>You have successfully completed all the "on the phone" expressions.</p>
+        <button class="btn" style="display: block; background-color: #3498db;" onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
+        // Array containing the 10 sentences
+        const sentences = [
+            ["Could", "you", "hold", "on", "a", "minute", "please?"],
+            ["I", "will", "put", "you", "through", "to", "the", "manager."],
+            ["Please", "leave", "a", "message", "after", "the", "beep."],
+            ["I", "tried", "to", "call", "but", "we", "got", "cut", "off."],
+            ["Hang", "up", "and", "dial", "the", "number", "again."],
+            ["Speak", "up", "a", "bit", "I", "can", "barely", "hear", "you."],
+            ["My", "battery", "is", "low", "I", "need", "a", "charger."],
+            ["Hold", "the", "line", "while", "I", "check", "for", "you."],
+            ["I", "will", "call", "you", "back", "as", "soon", "as", "possible."],
+            ["The", "line", "is", "busy", "please", "try", "again", "later."]
+        ];
+
+        let currentIndex = 0;
+        let currentTarget = [];
+        let poolWords = [];
+        let sentenceWords = [];
+
+        const poolContainer = document.getElementById('word-pool');
+        const sentenceContainer = document.getElementById('sentence-box');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressText = document.getElementById('progress-text');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const gameContainer = document.getElementById('game-container');
+        const endScreen = document.getElementById('end-screen');
+
+        // Function to shuffle array
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Initialize a level
+        function loadSentence() {
+            // Reset states
+            sentenceContainer.classList.remove('correct', 'wrong');
+            feedbackMessage.style.display = 'none';
+            checkBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            sentenceContainer.innerHTML = '';
+            poolContainer.innerHTML = '';
+            
+            currentTarget = sentences[currentIndex];
+            sentenceWords = [];
+            
+            // Create a scrambled copy of the target array
+            poolWords = [...currentTarget];
+            shuffle(poolWords);
+
+            // Reshuffle if it happens to be identical to the answer
+            if(poolWords.join('') === currentTarget.join('')) {
+                shuffle(poolWords);
+            }
+
+            progressText.innerText = `Sentence ${currentIndex + 1} of ${sentences.length}`;
+
+            renderPool();
+        }
+
+        // Render words in the bottom pool
+        function renderPool() {
+            poolContainer.innerHTML = '';
+            poolWords.forEach((word, index) => {
+                const wordEl = document.createElement('div');
+                wordEl.classList.add('word');
+                wordEl.innerText = word;
+                wordEl.onclick = () => moveToSentence(index);
+                poolContainer.appendChild(wordEl);
+            });
+        }
+
+        // Render words in the built sentence
+        function renderSentence() {
+            sentenceContainer.innerHTML = '';
+            sentenceWords.forEach((word, index) => {
+                const wordEl = document.createElement('div');
+                wordEl.classList.add('word');
+                wordEl.innerText = word;
+                wordEl.onclick = () => moveToPool(index);
+                sentenceContainer.appendChild(wordEl);
+            });
+            
+            // Show Check button only if all words have been used
+            if (poolWords.length === 0 && !sentenceContainer.classList.contains('correct')) {
+                checkBtn.style.display = 'block';
+            } else {
+                checkBtn.style.display = 'none';
+            }
+        }
+
+        // Move a word from the pool to the sentence
+        function moveToSentence(index) {
+            // Remove previous wrong state if they are correcting their mistake
+            sentenceContainer.classList.remove('wrong');
+            feedbackMessage.style.display = 'none';
+
+            const word = poolWords.splice(index, 1)[0];
+            sentenceWords.push(word);
+            renderPool();
+            renderSentence();
+        }
+
+        // Move a word back from the sentence to the pool
+        function moveToPool(index) {
+            // If the sentence is already correct, lock it so they can't mess it up
+            if(sentenceContainer.classList.contains('correct')) return;
+
+            // Remove previous wrong state if they are correcting their mistake
+            sentenceContainer.classList.remove('wrong');
+            feedbackMessage.style.display = 'none';
+
+            const word = sentenceWords.splice(index, 1)[0];
+            poolWords.push(word);
+            renderPool();
+            renderSentence();
+        }
+
+        // Check if the current arrangement matches the target
+        function checkAnswer() {
+            const isCorrect = sentenceWords.every((val, index) => val === currentTarget[index]);
+            
+            if (isCorrect) {
+                sentenceContainer.classList.remove('wrong');
+                sentenceContainer.classList.add('correct');
+                
+                feedbackMessage.innerHTML = '✅ Correct! Well done.';
+                feedbackMessage.style.color = '#28a745';
+                feedbackMessage.style.display = 'block';
+                
+                checkBtn.style.display = 'none';
+                nextBtn.style.display = 'block';
+            } else {
+                sentenceContainer.classList.add('wrong');
+                
+                feedbackMessage.innerHTML = '❌ Not quite right. Click a word to move it back and try again!';
+                feedbackMessage.style.color = '#dc3545';
+                feedbackMessage.style.display = 'block';
+            }
+        }
+
+        // Proceed to next sentence
+        function nextSentence() {
+            currentIndex++;
+            if (currentIndex < sentences.length) {
+                loadSentence();
+            } else {
+                gameContainer.style.display = 'none';
+                endScreen.style.display = 'block';
+            }
+        }
+
+        // Start the game
+        loadSentence();
+
+    </script>
+</body>
+</html>
